@@ -12,6 +12,57 @@ portfolio-optimization-risk/
 ├── requirements.txt
 └── README.md
 
+import pandas as pd
+import numpy as np
+
+
+def load_price_data(filepath):
+    """
+    Load historical price data from a CSV file.
+
+    Expected format:
+    - Date column as index or a column named 'Date'
+    - Each asset as a separate column with price values
+    """
+    df = pd.read_csv(filepath)
+
+    # Ensure Date is datetime and set as index
+    if "Date" in df.columns:
+        df["Date"] = pd.to_datetime(df["Date"])
+        df.set_index("Date", inplace=True)
+
+    # Sort by date
+    df.sort_index(inplace=True)
+
+    return df
+
+
+def calculate_returns(price_data, method="log"):
+    """
+    Calculate asset returns from price data.
+
+    Parameters:
+    - method: 'log' for logarithmic returns
+              'simple' for percentage returns
+    """
+    if method == "log":
+        returns = np.log(price_data / price_data.shift(1))
+    elif method == "simple":
+        returns = price_data.pct_change()
+    else:
+        raise ValueError("method must be 'log' or 'simple'")
+
+    return returns.dropna()
+
+
+def clean_data(price_data):
+    """
+    Handle missing values by forward-filling and dropping remaining NaNs.
+    """
+    price_data = price_data.ffill()
+    price_data = price_data.dropna()
+    return price_data
+
 import numpy as np
 
 def portfolio_return(weights, returns):
